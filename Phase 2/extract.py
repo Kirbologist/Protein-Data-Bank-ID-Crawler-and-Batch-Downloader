@@ -18,7 +18,7 @@ from typing import NewType
 import gemmi
 from gemmi import cif, EntityType, PolymerType
 import sqlite3
-import database
+# import database
 from enum import Enum
 
 MainData = NewType("MainData", tuple[str, str, str, str, str, int, float, float, float, float, float, float])
