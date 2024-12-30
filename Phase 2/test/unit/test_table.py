@@ -12,12 +12,13 @@ from table import Table
 
 def test_table_initialisation():
     mock_attributes = MagicMock()
-    mock_extractor = MagicMock(return_value=[("test_id", "data1")])
+    mock_extractor = MagicMock(return_value=[('test_id', 'data1')])
     test_table = Table("test_table", mock_attributes, mock_extractor)
 
     assert test_table.name == "test_table"
     assert test_table.attributes == mock_attributes
     assert test_table.extractor == mock_extractor
+
 
 def test_table_initialisation_missing_arguments():
     with pytest.raises(TypeError):
@@ -102,7 +103,7 @@ def test_update_row(test_table):
 
 def test_update_row_invalid_columns(test_table):
     """
-    Test that a ValueError is raised if match_primary_keys method raises a ValueError. 
+    Test that a ValueError is raised if the match_columns method raises a ValueError. 
     """
     test_table.attributes.match_columns.side_effect = ValueError("Number of values given does not match number of columns")
     test_data = {"col1": "value1", "col2": "value2"}
@@ -117,7 +118,7 @@ def test_update_row_invalid_columns(test_table):
 
 def test_update_row_invalid_primary_keys(test_table):
     """
-    Test that a ValueError is raised if match_primary_keys method raises a ValueError. 
+    Test that a ValueError is raised if the match_primary_keys method raises a ValueError. 
     """
     test_table.attributes.match_primary_keys.side_effect = ValueError("Number of values given does not match number of keys")
     test_data = {"col1": "value1", "col2": "value2"}

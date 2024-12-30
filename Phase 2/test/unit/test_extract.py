@@ -28,12 +28,12 @@ def test_sense_sequence(mock_sheet):
 
 
 @pytest.mark.parametrize("complex_type", extract.ComplexType)
-def test_get_complex_type(complex_type, mock_structure, mock_entities):
+def test_get_complex_type(complex_type, mock_structure, test_entities):
     """
     Test that the function returns the correct complex type based on 
     the types of the entities.
     """
-    mock_structure.entities = mock_entities(complex_type=complex_type)
+    mock_structure.entities = test_entities(complex_type=complex_type)
 
     result = extract.get_complex_type(mock_structure)
     expected = complex_type 
@@ -42,17 +42,17 @@ def test_get_complex_type(complex_type, mock_structure, mock_entities):
 
 
 @patch('extract.get_complex_type')
-def test_insert_into_main_table(mock_complex_type, mock_structure, mock_doc, mock_chain):
+def test_insert_into_main_table(mock_get_complex_type, mock_structure, mock_doc, mock_chain):
     mock_polymer_sequence = MagicMock(spec=polymer_sequence.PolymerSequence)
     mock_block = MagicMock(spec=cif.Block)
     mock_block.find_value.side_effect = ["'mock_org'", "2000-01-01"]
     mock_doc.sole_block.return_value = mock_block
-    mock_complex_type.return_value = extract.ComplexType.NucleicAcid
+    mock_get_complex_type.return_value = extract.ComplexType.NucleicAcid
     mock_structure.__getitem__.return_value = [mock_chain, mock_chain]
     
     result = extract.insert_into_main_table(mock_structure, mock_doc, mock_polymer_sequence)
     expected = [
-        ("1A00", "NucleicAcid", "mock_title", "mock_org", "2000-01-01", "A A", "P 1",
+        ('1A00', 'NucleicAcid', 'mock_title', 'mock_org', '2000-01-01', 'A A', 'P 1',
          1, 1.0, 1.0, 1.0, 90.0, 90.0, 90.0)
     ]
 
@@ -73,7 +73,7 @@ def test_insert_into_main_table_source_org_is_none(mock_get_complex_type, mock_s
     
     result = extract.insert_into_main_table(mock_structure, mock_doc, mock_polymer_sequence)
     expected = [
-        ("1A00", "NucleicAcid", "mock_title", "", "2000-01-01", "A A", "P 1",
+        ('1A00', 'NucleicAcid', 'mock_title', '', '2000-01-01', 'A A', 'P 1',
          1, 1.0, 1.0, 1.0, 90.0, 90.0, 90.0)
     ]
 
@@ -81,9 +81,6 @@ def test_insert_into_main_table_source_org_is_none(mock_get_complex_type, mock_s
 
 @patch('extract.get_complex_type')
 def test_insert_into_main_table_revision_date_is_none(mock_get_complex_type, mock_structure, mock_doc, mock_chain):
-    """
-    Test that source organism is an empty string when its value is None.
-    """
     mock_polymer_sequence = MagicMock(spec=polymer_sequence.PolymerSequence)
 
     mock_block = MagicMock(spec=cif.Block)
@@ -95,7 +92,7 @@ def test_insert_into_main_table_revision_date_is_none(mock_get_complex_type, moc
     
     result = extract.insert_into_main_table(mock_structure, mock_doc, mock_polymer_sequence)
     expected = [
-        ("1A00", "NucleicAcid", "mock_title", "mock_org", "2000-01-01", "A A", "P 1",
+        ('1A00', 'NucleicAcid', 'mock_title', 'mock_org', '2000-01-01', 'A A', 'P 1',
          1, 1.0, 1.0, 1.0, 90.0, 90.0, 90.0)
     ]
 
@@ -116,8 +113,8 @@ def test_insert_into_main_table_z_value_absent(mock_get_complex_type, mock_struc
     
     result = extract.insert_into_main_table(mock_structure, mock_doc, mock_polymer_sequence)
     expected = [
-        ("1A00", "NucleicAcid", "mock_title", "mock_org", "2000-01-01", "A A", "P 1",
-         "", 1.0, 1.0, 1.0, 90.0, 90.0, 90.0)
+        ('1A00', 'NucleicAcid', 'mock_title', 'mock_org', '2000-01-01', 'A A', 'P 1',
+         '', 1.0, 1.0, 1.0, 90.0, 90.0, 90.0)
     ]
 
     assert result == expected
@@ -130,9 +127,9 @@ def test_insert_into_main_table_invalid_block(mock_structure):
     """
     mock_polymer_sequence = MagicMock(spec=polymer_sequence.PolymerSequence)
     doc_one = cif.Document()  # has two blocks
-    doc_one.add_new_block('block_one')
-    doc_one.add_new_block('block_two')
-    doc_two = cif.Document()  # one block 
+    doc_one.add_new_block("block_one")
+    doc_one.add_new_block("block_two")
+    doc_two = cif.Document()  # has no blocks 
 
     with pytest.raises(RuntimeError, match="single data block expected, got 2"):
         extract.insert_into_main_table(mock_structure, doc_one, mock_polymer_sequence)
@@ -193,10 +190,10 @@ def test_insert_into_experimental_table_invalid_block(mock_structure):
     no blocks or more than one block.
     """
     mock_polymer_sequence = MagicMock(spec=polymer_sequence.PolymerSequence)
-    doc_one = cif.Document()
-    doc_one.add_new_block('block_one')
-    doc_one.add_new_block('block_two')
-    doc_two = cif.Document()
+    doc_one = cif.Document()  # has two blocks 
+    doc_one.add_new_block("block_one")
+    doc_one.add_new_block("block_two")
+    doc_two = cif.Document()  # has no block
 
     with pytest.raises(RuntimeError, match="single data block expected, got 2") as errinfo_one:
         extract.insert_into_experimental_table(mock_structure, doc_one, mock_polymer_sequence)
@@ -236,7 +233,7 @@ def test_insert_into_entity_table_loop_not_found(mock_structure, mock_doc, mock_
 
     mock_block = MagicMock(spec=cif.Block)
     mock_doc.sole_block.return_value = mock_block
-    mock_block.find_loop.return_value = []
+    mock_block.find_loop.return_value = []  # loop not found
     mock_block.find_value.return_value = "'mock_entity'"
 
     mock_entity = mock_entity(gemmi.EntityType.Polymer, gemmi.PolymerType.PeptideD, subchains=['A', 'B'])
@@ -257,8 +254,8 @@ def test_insert_into_entity_table_invalid_block(mock_structure):
     """
     mock_polymer_sequence = MagicMock(spec=polymer_sequence.PolymerSequence)
     doc_one = cif.Document()
-    doc_one.add_new_block('block_one')
-    doc_one.add_new_block('block_two')
+    doc_one.add_new_block("block_one")
+    doc_one.add_new_block("block_two")
     doc_two = cif.Document()
 
     with pytest.raises(RuntimeError, match="single data block expected, got 2"):
@@ -302,6 +299,9 @@ def test_insert_into_subchain_table(mock_structure, mock_doc, mock_entity, mock_
   
 
 def test_insert_into_subchain_table_invalid_entity(mock_structure, mock_doc, mock_entity):
+    """
+    Test that no data is extracted if the entity polymer type is not PeptideD or PeptideL.
+    """
     mock_polymer_sequence = MagicMock(spec=polymer_sequence.PolymerSequence)
 
     mock_invalid_entity = mock_entity(gemmi.EntityType.Polymer, gemmi.PolymerType.SaccharideD, ['A'])  # skipped in insert method
@@ -503,13 +503,13 @@ class TestCoilExtractor:
     @staticmethod
     def mock_sheet():
         strand = MagicMock()
-        strand.name = "1"
+        strand.name = '1'
         strand.start.res_id.seqid.num = 6
         strand.start.res_id.seqid.icode = ''
         strand.end.res_id.seqid.num = 7
         strand.end.res_id.seqid.icode = ''
         sheet = MagicMock()
-        sheet.name = "A"
+        sheet.name = 'A'
         sheet.strands = [strand]
         return sheet
     
@@ -517,16 +517,16 @@ class TestCoilExtractor:
     @staticmethod
     def mock_chain_a():
         chain = MagicMock()
-        chain.name = "A"
-        chain.get_polymer.return_value.make_one_letter_sequence.return_value = "ARNDCQEGHIX"
-        chain.get_polymer.return_value.first_conformer.return_value = ["res1", "res2"]
+        chain.name = 'A'
+        chain.get_polymer.return_value.make_one_letter_sequence.return_value = 'ARNDCQEGHIX'
+        chain.get_polymer.return_value.first_conformer.return_value = ['res1', 'res2']
         return chain
     
     @pytest.fixture
     @staticmethod
     def mock_chain_b():
         chain = MagicMock()
-        chain.name = "B"
+        chain.name = 'B'
         return chain
 
     @pytest.fixture
@@ -545,14 +545,14 @@ class TestCoilExtractor:
         polymer_sequence = MagicMock()
         polymer_sequence.one_letter_code = 'ARNDCQEGHIX'
 
-        polymer_sequence.chain_start_indices = {"A": 1, "B": 1}
-        polymer_sequence.chain_end_indices = {"A": 10, "B": 8}
+        polymer_sequence.chain_start_indices = {'A': 1, 'B': 1}
+        polymer_sequence.chain_end_indices = {'A': 10, 'B': 8}
 
-        polymer_sequence.get_chain_start_id.side_effect = lambda chain: 1 if chain == "A" else 1
-        polymer_sequence.get_chain_end_id.side_effect = lambda chain: 10 if chain == "A" else 8
+        polymer_sequence.get_chain_start_id.side_effect = lambda chain: 1 if chain == 'A' else 1
+        polymer_sequence.get_chain_end_id.side_effect = lambda chain: 10 if chain == 'A' else 8
 
-        polymer_sequence.get_chain_subsequence.return_value = ["SUBSEQ", 6]
-        polymer_sequence.get_chain_annotated_subsequence.return_value = "SUBSEQ"
+        polymer_sequence.get_chain_subsequence.return_value = ['SUBSEQ', 6]
+        polymer_sequence.get_chain_annotated_subsequence.return_value = 'SUBSEQ'
         polymer_sequence.contains_unconfirmed_residues.return_value = 0
 
         return polymer_sequence
@@ -575,9 +575,9 @@ class TestCoilExtractor:
         
         result = extract.insert_into_coil_table(mock_structure, MagicMock(), mock_polymer_sequence)
         expected = [
-            ("1A00", 1, "A", 0, "SUBSEQ", "SUBSEQ", 6, 10, 6), 
-            ("1A00", 2, "B", 0, "SUBSEQ", "SUBSEQ", 1, 5, 6),
-            ("1A00", 3, "B", 0, "SUBSEQ", "SUBSEQ", 8, 8, 6)
+            ('1A00', 1, 'A', 0, 'SUBSEQ', 'SUBSEQ', 6, 10, 6), 
+            ('1A00', 2, "B", 0, 'SUBSEQ', 'SUBSEQ', 1, 5, 6),
+            ('1A00', 3, "B", 0, 'SUBSEQ', 'SUBSEQ', 8, 8, 6)
         ]
 
         # Expected output: 3 coils (before and after helix/sheet)
@@ -649,8 +649,8 @@ class TestCoilExtractor:
 
         result = extract.insert_into_coil_table(mock_structure, MagicMock(), mock_polymer_sequence)
         expected = [
-            ("1A00", 1, "A", 0, "SUBSEQ", "SUBSEQ", 1, 10, 6), 
-            ("1A00", 2, "B", 0, "SUBSEQ", "SUBSEQ", 1, 8, 6)
+            ('1A00', 1, 'A', 0, 'SUBSEQ', 'SUBSEQ', 1, 10, 6), 
+            ('1A00', 2, "B", 0, 'SUBSEQ', 'SUBSEQ', 1, 8, 6)
         ]  
 
         # Expected output: 2 coils extracted
@@ -686,16 +686,16 @@ class TestCoilExtractor:
 
         result = extract.insert_into_coil_table(mock_structure, MagicMock(), mock_polymer_sequence)
         expected = [
-            ("1A00", 1, "A", 1, "SUBSEQ", "", 6, 10, 6), 
-            ("1A00", 2, "B", 1, "SUBSEQ", "", 1, 5, 6),
-            ("1A00", 3, "B", 1, "SUBSEQ", "", 8, 8, 6)
+            ('1A00', 1, 'A', 1, 'SUBSEQ', '', 6, 10, 6), 
+            ('1A00', 2, "B", 1, 'SUBSEQ', '', 1, 5, 6),
+            ('1A00', 3, "B", 1, 'SUBSEQ', '', 8, 8, 6)
         ]
 
         # Expected output: 3 coils (before and after helix/sheet)
         assert len(result) == 3
         assert result == expected
 
-    # coil start > coil_end 
+
     def test_insert_into_coil_table_helix_at_chain_end(self, mock_structure, mock_chain_a, mock_chain_b, mock_polymer_sequence):
         """
         Test valid extraction of coils when a helix ends at the last residue of a chain. 
@@ -714,8 +714,8 @@ class TestCoilExtractor:
         
         result = extract.insert_into_coil_table(mock_structure, MagicMock(), mock_polymer_sequence)
         expected = [
-            ("1A00", 1, "B", 0, "SUBSEQ", "SUBSEQ", 1, 5, 6), 
-            ("1A00", 2, "B", 0, "SUBSEQ", "SUBSEQ", 8, 8, 6)
+            ('1A00', 1, "B", 0, 'SUBSEQ', 'SUBSEQ', 1, 5, 6), 
+            ('1A00', 2, "B", 0, 'SUBSEQ', 'SUBSEQ', 8, 8, 6)
         ]
 
         # Expected output: 2 coils (before and after helix/sheet)
@@ -741,8 +741,8 @@ class TestCoilExtractor:
         
         result = extract.insert_into_coil_table(mock_structure, MagicMock(), mock_polymer_sequence)
         expected = [
-            ("1A00", 1, "A", 0, "SUBSEQ", "SUBSEQ", 6, 10, 6), 
-            ("1A00", 2, "B", 0, "SUBSEQ", "SUBSEQ", 1, 5, 6)
+            ('1A00', 1, 'A', 0, 'SUBSEQ', 'SUBSEQ', 6, 10, 6), 
+            ('1A00', 2, "B", 0, 'SUBSEQ', 'SUBSEQ', 1, 5, 6)
         ]
 
         # Expected output: 2 coils (before and after helix/sheet)
@@ -778,15 +778,13 @@ class TestCoilExtractor:
         
         result = extract.insert_into_coil_table(mock_structure, MagicMock(), mock_polymer_sequence)
         expected = [
-            ("1A00", 1, "A", 0, "SUBSEQ", "SUBSEQ", 6, 6, 6), 
-            ("1A00", 2, "A", 0, "SUBSEQ", "SUBSEQ", 8, 10, 6), 
-            ("1A00", 3, "B", 0, "SUBSEQ", "SUBSEQ", 1, 5, 6),
-            ("1A00", 4, "B", 0, "SUBSEQ", "SUBSEQ", 8, 8, 6)
+            ('1A00', 1, 'A', 0, 'SUBSEQ', 'SUBSEQ', 6, 6, 6), 
+            ('1A00', 2, 'A', 0, 'SUBSEQ', 'SUBSEQ', 8, 10, 6), 
+            ('1A00', 3, "B", 0, 'SUBSEQ', 'SUBSEQ', 1, 5, 6),
+            ('1A00', 4, "B", 0, 'SUBSEQ', 'SUBSEQ', 8, 8, 6)
         ]
 
         # Expected output: 4 coils (before and after helix/sheet)
         assert len(result) == 4
         assert result == expected
-
-
 

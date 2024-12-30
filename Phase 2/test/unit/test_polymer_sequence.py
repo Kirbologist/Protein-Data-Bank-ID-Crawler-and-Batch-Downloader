@@ -14,8 +14,8 @@ import gemmi
 from polymer_sequence import PolymerSequence, Monomer, letter_code_3to1, sequence_3to1, binary_search
 
 
-def test_polymer_sequence_initialisation(mock_doc, fake_sequence_3to1):
-    with patch("polymer_sequence.sequence_3to1", wraps=fake_sequence_3to1) as mock_sequence_3to1:
+def test_polymer_sequence_initialisation(mock_doc, sequence_3to1_stub):
+    with patch("polymer_sequence.sequence_3to1", wraps=sequence_3to1_stub) as mock_sequence_3to1:
         # Initialize PolymerSequence with the mock CIF document
         polymer_sequence = PolymerSequence(mock_doc)
 
@@ -382,6 +382,7 @@ def test_span_binary_search_target_found(mock_span):
     target_label = 5
     result = binary_search(mock_span, 0, len(mock_span) - 1, target_label)
     assert result == 4
+
 
 def test_span_binary_search_recursion(mock_span):
     """

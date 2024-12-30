@@ -44,7 +44,7 @@ def mock_doc():
 
 
 @pytest.fixture
-def fake_sequence_3to1():
+def sequence_3to1_stub():
     """Fixture to mock the sequence_3to1 function."""
     def sequence_3to1(monomer_sequence):
         mapping = {"ALA": "A", "ARG": "R", "ASN": "N", "ASP": "D"}
@@ -53,22 +53,22 @@ def fake_sequence_3to1():
 
  
 @pytest.fixture
-def mock_entity():
-    def create_mock_entity(entity_type, polymer_type = None, subchains = []):
-        mock_entity = gemmi.Entity("")
-        mock_entity.name = '1'
-        mock_entity.entity_type = entity_type
+def test_entity():
+    def create_entity(entity_type, polymer_type = None, subchains = []):
+        test_entity = gemmi.Entity("")
+        test_entity.name = '1'
+        test_entity.entity_type = entity_type
         if polymer_type:
-            mock_entity.polymer_type = polymer_type
-        mock_entity.subchains = subchains
+            test_entity.polymer_type = polymer_type
+        test_entity.subchains = subchains
 
-        return mock_entity
+        return test_entity
     
-    return create_mock_entity
+    return create_entity
 
 
 @pytest.fixture
-def mock_entities(mock_entity):
+def test_entities(test_entity):
     def create_entities_with_complex_type(complex_type):
         entities = EntityList()
 
@@ -118,7 +118,7 @@ def mock_entities(mock_entity):
         }
 
         for args in entity_args[complex_type]:
-            entities.append(mock_entity(*args))
+            entities.append(test_entity(*args))
 
         return entities 
 

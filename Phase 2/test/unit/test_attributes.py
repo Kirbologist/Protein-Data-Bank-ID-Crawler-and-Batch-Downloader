@@ -7,7 +7,6 @@ To run all tests in the test directory, use the command "pytest test/".
 Output verbosity can be adjusted by using the relevant flags in the command (e.g. -q, -v, -vv).
 """
 import pytest 
-from unittest.mock import MagicMock
 from attributes import Attributes 
 
 def test_attributes_initialisation():
@@ -76,26 +75,25 @@ def test_attributes_initialisation_invalid_foreign_keys():
     with pytest.raises(ValueError, match="Primary keys and foreign keys need to be a subset of attributes"):
         Attributes(test_attributes_pairs, test_primary_keys, test_foreign_keys)
 
-
 def test_attributes_string(test_attributes):
     expected = "(id VARCHAR, a FLOAT, PRIMARY KEY (id, a), FOREIGN KEY (id) REFERENCES\
                                         main (id))"
     result = str(test_attributes)
 
-    assert expected == result
+    assert result == expected
 
 def test_get_primary_keys(test_attributes):
     expected = ["id", "a"]
     result = test_attributes.get_primary_keys()
 
-    assert expected == result
+    assert result == expected
 
 def test_tuple_to_dict(test_attributes):
     test_values = ("VARCHAR", "FLOAT")
     expected = {"id": "VARCHAR", "a": "FLOAT"}
     result = test_attributes.tuple_to_dict(test_values)
 
-    assert expected == result
+    assert result == expected
 
 def test_tuple_to_dict_invalid_values(test_attributes):
     """
@@ -111,14 +109,14 @@ def test_dict_to_tuple(test_attributes):
     expected = ("VARCHAR", "FLOAT")
     result = test_attributes.dict_to_tuple(test_values)
 
-    assert expected == result
+    assert result == expected
 
 def test_dict_to_tuple_invalid_values(test_attributes):
     test_values = {"id": "VARCHAR"}
     expected = ("VARCHAR", None)
     result = test_attributes.dict_to_tuple(test_values)
 
-    assert expected == result
+    assert result == expected
 
 def test_dict_to_tuple_values_not_in_attributes(test_attributes):
     """
@@ -135,7 +133,7 @@ def test_match_all_columns(test_attributes):
     expected = "id = '1A00' AND a = 1.0"
     result = test_attributes.match_all_columns(test_values)
 
-    assert expected == result
+    assert result == expected
 
 def test_match_all_columns_invalid_values(test_attributes):
     """
@@ -151,7 +149,7 @@ def test_match_columns(test_attributes):
     expected = "id = '1A00' AND a = 1.0"
     result = test_attributes.match_columns(test_column_value_pairs)
 
-    assert expected == result
+    assert result == expected
 
 def test_match_columns_invalid_argument(test_attributes):
     """
@@ -167,7 +165,7 @@ def test_match_primary_keys(test_attributes):
     expected = "id = '1A00' AND a = 1.0"
     result = test_attributes.match_primary_keys(test_primary_key_values)
 
-    assert expected == result
+    assert result == expected
 
 def test_match_primary_keys_invalid_values(test_attributes):
     """

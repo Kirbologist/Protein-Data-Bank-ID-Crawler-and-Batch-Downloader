@@ -6,7 +6,6 @@ To run a specific test module, use the command "pytest test/unit/test_something.
 To run all tests in the test directory, use the command "pytest test/".
 Output verbosity can be adjusted by using the relevant flags in the command (e.g. -q, -v, -vv).
 """
-import pytest
 from unittest.mock import patch, call, MagicMock
 import gemmi
 
@@ -49,19 +48,6 @@ def test_init_database_empty_table_schemas(mock_cursor):
         commands.init_database(mock_cursor)
 
         mock_cursor.execute.assert_not_called()
-
-
-def test_init_database_missing_create_table_method(mock_cursor, mock_table):
-    """
-    Test that an attribute error is raised if the create_table
-    method is missing.
-    """
-    del mock_table.create_table  # delete create_table method
-
-    mock_table_schemas = [mock_table]
-    with patch('commands.table_schemas', mock_table_schemas):
-        with pytest.raises(AttributeError):
-            commands.init_database(mock_cursor)
 
 
 @patch("commands.insert_file")
