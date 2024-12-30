@@ -202,29 +202,29 @@ def test_insert_into_experimental_table_invalid_block(mock_structure):
         extract.insert_into_experimental_table(mock_structure, doc_two, mock_polymer_sequence)
     
 
-def test_insert_into_entity_table(mock_structure, mock_doc, mock_entity):
+def test_insert_into_entity_table(mock_structure, mock_doc, test_entity):
     mock_polymer_sequence = MagicMock(spec=polymer_sequence.PolymerSequence)
 
     mock_block = MagicMock(spec=cif.Block)
     mock_doc.sole_block.return_value = mock_block
-    mock_block.find_loop.return_value = ["mock_entity_one", "'mock_entity_two'", None]
+    mock_block.find_loop.return_value = ["test_entity_one", "'test_entity_two'", None]
 
-    mock_entity_one = mock_entity(gemmi.EntityType.Polymer, gemmi.PolymerType.PeptideD, subchains=['A'])
-    mock_entity_two = mock_entity(gemmi.EntityType.NonPolymer) # unknown polymer type, no subchains
-    mock_entity_three = mock_entity(gemmi.EntityType.Polymer, gemmi.PolymerType.PeptideD, subchains=['A', 'B'])
-    mock_structure.entities = [mock_entity_one, mock_entity_two, mock_entity_three]
+    test_entity_one = test_entity(gemmi.EntityType.Polymer, gemmi.PolymerType.PeptideD, subchains=['A'])
+    test_entity_two = test_entity(gemmi.EntityType.NonPolymer) # unknown polymer type, no subchains
+    test_entity_three = test_entity(gemmi.EntityType.Polymer, gemmi.PolymerType.PeptideD, subchains=['A', 'B'])
+    mock_structure.entities = [test_entity_one, test_entity_two, test_entity_three]
 
     result = extract.insert_into_entity_table(mock_structure, mock_doc, mock_polymer_sequence)
     expected = [
-        ('1A00', '1', 'mock_entity_one', 'Polymer', 'PeptideD', 'A'), 
-        ('1A00', '1', 'mock_entity_two', 'NonPolymer', 'Unknown', ''),
+        ('1A00', '1', 'test_entity_one', 'Polymer', 'PeptideD', 'A'), 
+        ('1A00', '1', 'test_entity_two', 'NonPolymer', 'Unknown', ''),
         ('1A00', '1', '', 'Polymer', 'PeptideD', 'A B'),
     ]
 
     assert result == expected
    
 
-def test_insert_into_entity_table_loop_not_found(mock_structure, mock_doc, mock_entity):
+def test_insert_into_entity_table_loop_not_found(mock_structure, mock_doc, test_entity):
     """
     Test that a list containing one tuple representing a single entity
     is returned when a loop is not found.
@@ -234,14 +234,14 @@ def test_insert_into_entity_table_loop_not_found(mock_structure, mock_doc, mock_
     mock_block = MagicMock(spec=cif.Block)
     mock_doc.sole_block.return_value = mock_block
     mock_block.find_loop.return_value = []  # loop not found
-    mock_block.find_value.return_value = "'mock_entity'"
+    mock_block.find_value.return_value = "'test_entity'"
 
-    mock_entity = mock_entity(gemmi.EntityType.Polymer, gemmi.PolymerType.PeptideD, subchains=['A', 'B'])
-    mock_structure.entities = [mock_entity]
+    test_entity = test_entity(gemmi.EntityType.Polymer, gemmi.PolymerType.PeptideD, subchains=['A', 'B'])
+    mock_structure.entities = [test_entity]
 
     result = extract.insert_into_entity_table(mock_structure, mock_doc, mock_polymer_sequence)
     expected = [
-        ('1A00', '1', 'mock_entity', 'Polymer', 'PeptideD', 'A B')
+        ('1A00', '1', 'test_entity', 'Polymer', 'PeptideD', 'A B')
     ]
 
     assert result == expected
@@ -265,7 +265,7 @@ def test_insert_into_entity_table_invalid_block(mock_structure):
         extract.insert_into_entity_table(mock_structure, doc_two, mock_polymer_sequence)
 
 
-def test_insert_into_subchain_table(mock_structure, mock_doc, mock_entity, mock_subchain, mock_chain):
+def test_insert_into_subchain_table(mock_structure, mock_doc, test_entity, mock_subchain, mock_chain):
     def mock_get_item(index):
         if index == 0:
             return mock_first_residue
@@ -274,8 +274,8 @@ def test_insert_into_subchain_table(mock_structure, mock_doc, mock_entity, mock_
         
     mock_polymer_sequence = MagicMock(spec=polymer_sequence.PolymerSequence)
 
-    mock_entity = mock_entity(gemmi.EntityType.Polymer, gemmi.PolymerType.PeptideD, ['A'])
-    mock_structure.entities = [mock_entity]
+    test_entity = test_entity(gemmi.EntityType.Polymer, gemmi.PolymerType.PeptideD, ['A'])
+    mock_structure.entities = [test_entity]
 
     # mock subchain length to a non-zero value
     mock_subchain.__len__.return_value = 11  
@@ -298,13 +298,13 @@ def test_insert_into_subchain_table(mock_structure, mock_doc, mock_entity, mock_
     assert result == expected
   
 
-def test_insert_into_subchain_table_invalid_entity(mock_structure, mock_doc, mock_entity):
+def test_insert_into_subchain_table_invalid_entity(mock_structure, mock_doc, test_entity):
     """
     Test that no data is extracted if the entity polymer type is not PeptideD or PeptideL.
     """
     mock_polymer_sequence = MagicMock(spec=polymer_sequence.PolymerSequence)
 
-    mock_invalid_entity = mock_entity(gemmi.EntityType.Polymer, gemmi.PolymerType.SaccharideD, ['A'])  # skipped in insert method
+    mock_invalid_entity = test_entity(gemmi.EntityType.Polymer, gemmi.PolymerType.SaccharideD, ['A'])  # skipped in insert method
     mock_structure.entities = [mock_invalid_entity]
 
     result = extract.insert_into_subchain_table(mock_structure, mock_doc, mock_polymer_sequence)
@@ -313,11 +313,11 @@ def test_insert_into_subchain_table_invalid_entity(mock_structure, mock_doc, moc
     assert result == expected
 
 
-def test_insert_into_subchain_table_subchain_length_is_zero(mock_structure, mock_doc, mock_entity, mock_subchain, mock_chain):
+def test_insert_into_subchain_table_subchain_length_is_zero(mock_structure, mock_doc, test_entity, mock_subchain, mock_chain):
     mock_polymer_sequence = MagicMock(spec=polymer_sequence.PolymerSequence)
 
-    mock_entity = mock_entity(gemmi.EntityType.Polymer, gemmi.PolymerType.PeptideD, ['A'])
-    mock_structure.entities = [mock_entity]
+    test_entity = test_entity(gemmi.EntityType.Polymer, gemmi.PolymerType.PeptideD, ['A'])
+    mock_structure.entities = [test_entity]
 
     # mock subchain length to zero 
     mock_subchain.__len__.return_value = 0
