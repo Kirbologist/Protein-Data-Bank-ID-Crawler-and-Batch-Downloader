@@ -25,7 +25,7 @@ class Table(Generic[*AttributeTypes]):
     def extract_data(self, struct: gemmi.Structure, doc: cif.Document, sequence: PolymerSequence) -> list[Attributes]:
         return self.extractor(struct, doc, sequence)
     
-    def insert_row(self, data: Attributes):
+    def insert_row(self, data):
         args = ', '.join(['?' for i in range(len(data))])
         return f"INSERT INTO {self.name} VALUES({args})"
     

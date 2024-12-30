@@ -97,5 +97,5 @@ def retrieve_from_table(cur: sqlite3.Cursor, table_name: str, entry_id: str):
     """
     Retrieves all rows from a given table with the specified entry id.
     """
-    result = cur.execute(f'SELECT * FROM {table_name} WHERE entry_id = {entry_id}')
+    result = cur.execute(f"SELECT * FROM {table_name} WHERE entry_id = '{entry_id}'")
     return result.fetchall()
